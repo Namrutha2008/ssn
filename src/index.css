@@ -1,5 +1,8 @@
+@import "tailwindcss";
+
 :root {
-  font-family: 'Space Grotesk', 'Segoe UI', sans-serif;
+  font-family: 'Inter', 'Space Grotesk', system-ui, sans-serif;
+
   line-height: 1.5;
   font-weight: 400;
   color: #ecf6ff;

@@ -28,29 +28,29 @@ function App() {
   const getActiveNavItem = () => {
     if (path === '/optimizer') return 'Optimizer'
     if (path === '/solar-analysis' || path === '/analysis') return 'Solar Analysis'
-    if (path === '/loss-detector' || path === '/ai-prediction') return 'AI Prediction'
     if (path === '/simulation' || path === '/what-if-simulator') return 'Simulation'
     if (path === '/solar-analyst') return 'Solar Analyst'
-    return 'Dashboard'
+    if (path === '/dashboard') return 'Dashboard'
+    return 'AI Prediction'
   }
 
   const activeNav = getActiveNavItem()
 
   const handleNavClick = (navId) => {
-    if (navId === 'Dashboard') navigate('/')
+    if (navId === 'Dashboard') navigate('/dashboard')
     else if (navId === 'Optimizer') navigate('/optimizer')
     else if (navId === 'Solar Analysis') navigate('/solar-analysis')
     else if (navId === 'Simulation') navigate('/simulation')
-    else if (navId === 'AI Prediction') navigate('/loss-detector')
+    else if (navId === 'AI Prediction') navigate('/ai-prediction')
     else if (navId === 'Solar Analyst') navigate('/solar-analyst')
-    else navigate('/')
+    else navigate('/ai-prediction')
   }
 
   return (
     <div className="solarquest-app">
       {/* SHARED LEFT SIDEBAR */}
       <aside className="app-sidebar">
-        <div className="brand-logo-area" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
+        <div className="brand-logo-area" onClick={() => navigate('/ai-prediction')} style={{ cursor: 'pointer' }}>
           <div className="sun-logo-icon">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="4" fill="#ffb830" stroke="#ffb830" />
@@ -109,6 +109,23 @@ function App() {
             <p>For a Sustainable Future</p>
           </div>
         </div>
+
+        {/* Sidebar User Profile Footer */}
+        <div className="sidebar-user-profile">
+          <div className="user-avatar-circle">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+          </div>
+          <div className="user-info">
+            <h4>Meenakshi</h4>
+            <span>Solar Explorer</span>
+          </div>
+          <button type="button" className="user-settings-btn" title="Settings">
+            ⚙️
+          </button>
+        </div>
       </aside>
 
       {/* DYNAMIC PAGE CONTENT CONTAINER */}
@@ -119,21 +136,22 @@ function App() {
         {(path === '/solar-analysis' || path === '/analysis') && (
           <SolarAnalysis onNavigate={navigate} />
         )}
-        {(path === '/loss-detector' || path === '/ai-prediction') && (
-          <LossDetector onNavigate={navigate} />
-        )}
         {(path === '/simulation' || path === '/what-if-simulator') && (
           <WhatIfSimulator onNavigate={navigate} />
         )}
         {path === '/solar-analyst' && (
           <SolarAnalyst onNavigate={navigate} />
         )}
-        {path !== '/optimizer' && path !== '/solar-analysis' && path !== '/analysis' && path !== '/loss-detector' && path !== '/ai-prediction' && path !== '/simulation' && path !== '/what-if-simulator' && path !== '/solar-analyst' && (
+        {path === '/dashboard' && (
           <DashboardView onNavigate={navigate} />
+        )}
+        {(path === '/' || path === '/loss-detector' || path === '/ai-prediction' || (path !== '/optimizer' && path !== '/solar-analysis' && path !== '/analysis' && path !== '/simulation' && path !== '/what-if-simulator' && path !== '/solar-analyst' && path !== '/dashboard')) && (
+          <LossDetector onNavigate={navigate} />
         )}
       </main>
     </div>
   )
+
 }
 
 export default App

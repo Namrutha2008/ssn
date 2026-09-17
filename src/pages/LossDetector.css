@@ -1,0 +1,65 @@
+/* AI Prediction Futuristic Styling & Animations */
+
+@keyframes lineDraw {
+  0% {
+    stroke-dashoffset: 600;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(6, 182, 212, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(6, 182, 212, 0.55);
+  }
+}
+
+.chart-line-pred {
+  stroke-dasharray: 6 4;
+  animation: lineDraw 2.5s ease-out forwards;
+}
+
+.chart-line-act {
+  stroke-dasharray: 600;
+  stroke-dashoffset: 0;
+  animation: lineDraw 2s ease-out forwards;
+}
+
+/* Custom Glow Classes */
+.text-shadow-glow {
+  text-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
+}
+
+.neon-glow-border {
+  border: 1px solid rgba(6, 182, 212, 0.35);
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.15);
+  transition: all 0.3s ease;
+}
+
+.neon-glow-border:hover {
+  border-color: rgba(6, 182, 212, 0.6);
+  box-shadow: 0 0 30px rgba(6, 182, 212, 0.3);
+}
+
+/* Scrollbar polish */
+.ai-pred-page ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.ai-pred-page ::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.6);
+}
+
+.ai-pred-page ::-webkit-scrollbar-thumb {
+  background: rgba(56, 189, 248, 0.3);
+  border-radius: 3px;
+}
+
+.ai-pred-page ::-webkit-scrollbar-thumb:hover {
+  background: rgba(56, 189, 248, 0.6);
+}
