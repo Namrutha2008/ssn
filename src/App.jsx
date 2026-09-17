@@ -6,6 +6,7 @@ import WhatIfSimulator from './pages/WhatIfSimulator'
 import SolarAnalysis from './pages/SolarAnalysis'
 import Optimizer from './pages/Optimizer'
 import SolarAnalyst from './pages/SolarAnalyst'
+import Settings from './pages/Settings'
 import sidebarCardImg from './assets/sidebar_card.jpg'
 
 function App() {
@@ -31,6 +32,7 @@ function App() {
     if (path === '/simulation' || path === '/what-if-simulator') return 'Simulation'
     if (path === '/solar-analyst') return 'Solar Analyst'
     if (path === '/dashboard') return 'Dashboard'
+    if (path === '/settings') return 'Settings'
     return 'AI Prediction'
   }
 
@@ -43,6 +45,7 @@ function App() {
     else if (navId === 'Simulation') navigate('/simulation')
     else if (navId === 'AI Prediction') navigate('/ai-prediction')
     else if (navId === 'Solar Analyst') navigate('/solar-analyst')
+    else if (navId === 'Settings') navigate('/settings')
     else navigate('/ai-prediction')
   }
 
@@ -92,7 +95,7 @@ function App() {
               <span className="nav-label">Alerts</span>
               <span className="badge-count">3</span>
             </button>
-            <button type="button" className="nav-button">
+            <button type="button" className={`nav-button ${activeNav === 'Settings' ? 'active' : ''}`} onClick={() => handleNavClick('Settings')}>
               <span className="nav-icon-symbol">⚙️</span>
               <span className="nav-label">Settings</span>
             </button>
@@ -121,7 +124,7 @@ function App() {
             <h4>Meenakshi</h4>
             <span>Solar Explorer</span>
           </div>
-          <button type="button" className="user-settings-btn" title="Settings">
+          <button type="button" className="user-settings-btn" title="Settings" onClick={() => handleNavClick('Settings')}>
             ⚙️
           </button>
         </div>
@@ -144,7 +147,10 @@ function App() {
         {path === '/dashboard' && (
           <DashboardView onNavigate={navigate} />
         )}
-        {(path === '/' || path === '/loss-detector' || path === '/ai-prediction' || (path !== '/optimizer' && path !== '/solar-analysis' && path !== '/analysis' && path !== '/simulation' && path !== '/what-if-simulator' && path !== '/solar-analyst' && path !== '/dashboard')) && (
+        {path === '/settings' && (
+          <Settings onNavigate={navigate} />
+        )}
+        {(path === '/' || path === '/loss-detector' || path === '/ai-prediction' || (path !== '/optimizer' && path !== '/solar-analysis' && path !== '/analysis' && path !== '/simulation' && path !== '/what-if-simulator' && path !== '/solar-analyst' && path !== '/dashboard' && path !== '/settings')) && (
           <LossDetector onNavigate={navigate} />
         )}
       </main>
