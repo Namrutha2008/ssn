@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
 import './LossDetector.css'
 
-export default function LossDetector({ onNavigate }) {
+export default function LossDetector({ _onNavigate }) {
   const [activeTab, setActiveTab] = useState('Today')
-  const [selectedLocation, setSelectedLocation] = useState('Chennai, Tamil Nadu')
+  const [selectedLocation] = useState('Chennai, Tamil Nadu')
   const [showReportModal, setShowReportModal] = useState(false)
 
   return (

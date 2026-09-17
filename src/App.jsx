@@ -71,7 +71,6 @@ function App() {
               { id: 'Optimizer', label: 'Optimizer', icon: '⚡' },
               { id: 'Simulation', label: 'Simulation', icon: '🔄' },
               { id: 'AI Prediction', label: 'AI Prediction', icon: '🤖' },
-              { id: 'Analytics', label: 'Analytics', icon: '📊' },
             ].map((item) => (
               <button
                 key={item.id}
