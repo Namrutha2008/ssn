@@ -7,6 +7,7 @@ import SolarAnalysis from './pages/SolarAnalysis'
 import Optimizer from './pages/Optimizer'
 import SolarAnalyst from './pages/SolarAnalyst'
 import Settings from './pages/Settings'
+import Alerts from './pages/Alerts'
 import sidebarCardImg from './assets/sidebar_card.jpg'
 
 function App() {
@@ -33,6 +34,7 @@ function App() {
     if (path === '/solar-analyst') return 'Solar Analyst'
     if (path === '/dashboard') return 'Dashboard'
     if (path === '/settings') return 'Settings'
+    if (path === '/alerts') return 'Alerts'
     return 'AI Prediction'
   }
 
@@ -46,6 +48,7 @@ function App() {
     else if (navId === 'AI Prediction') navigate('/ai-prediction')
     else if (navId === 'Solar Analyst') navigate('/solar-analyst')
     else if (navId === 'Settings') navigate('/settings')
+    else if (navId === 'Alerts') navigate('/alerts')
     else navigate('/ai-prediction')
   }
 
@@ -90,7 +93,7 @@ function App() {
           <div className="nav-divider-label">More</div>
 
           <div className="nav-group">
-            <button type="button" className="nav-button">
+            <button type="button" className={`nav-button ${activeNav === 'Alerts' ? 'active' : ''}`} onClick={() => handleNavClick('Alerts')}>
               <span className="nav-icon-symbol">🔔</span>
               <span className="nav-label">Alerts</span>
               <span className="badge-count">3</span>
@@ -150,7 +153,10 @@ function App() {
         {path === '/settings' && (
           <Settings onNavigate={navigate} />
         )}
-        {(path === '/' || path === '/loss-detector' || path === '/ai-prediction' || (path !== '/optimizer' && path !== '/solar-analysis' && path !== '/analysis' && path !== '/simulation' && path !== '/what-if-simulator' && path !== '/solar-analyst' && path !== '/dashboard' && path !== '/settings')) && (
+        {path === '/alerts' && (
+          <Alerts onNavigate={navigate} />
+        )}
+        {(path === '/' || path === '/loss-detector' || path === '/ai-prediction' || (path !== '/optimizer' && path !== '/solar-analysis' && path !== '/analysis' && path !== '/simulation' && path !== '/what-if-simulator' && path !== '/solar-analyst' && path !== '/dashboard' && path !== '/settings' && path !== '/alerts')) && (
           <LossDetector onNavigate={navigate} />
         )}
       </main>

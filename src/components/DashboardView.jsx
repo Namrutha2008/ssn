@@ -157,7 +157,7 @@ export default function DashboardView({ onNavigate }) {
 
         {/* TOP LEFT GREETING & INTRO */}
         <div className="hero-copy-container">
-          <h1 className="hero-greeting">{greeting}, User!</h1>
+          <h1 className="hero-greeting">{greeting}, Meenakshi!</h1>
           <h3 className="hero-subtitle">Your Solar Intelligence Center</h3>
           <p className="hero-desc">
             Real-time insights, AI-powered analysis and actionable recommendations to get the most out of your solar energy.

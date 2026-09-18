@@ -1,13 +1,86 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react';
+import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import { fetchSolarData } from '../services/openMeteoService';
+
+const LOCATIONS = [
+  { name: 'Chennai, India', lat: 13.0827, lon: 80.2707 },
+  { name: 'Sydney, Australia', lat: -33.8688, lon: 151.2093 },
+  { name: 'Dubai, UAE', lat: 25.2048, lon: 55.2708 },
+  { name: 'Seville, Spain', lat: 37.3891, lon: -5.9845 },
+  { name: 'Phoenix, USA', lat: 33.4484, lon: -112.0740 },
+  { name: 'Tokyo, Japan', lat: 35.6895, lon: 139.6917 },
+  { name: 'Cape Town, SA', lat: -33.9249, lon: 18.4241 },
+  { name: 'Rio de Janeiro, BR', lat: -22.9068, lon: -43.1729 },
+  { name: 'Berlin, Germany', lat: 52.5200, lon: 13.4050 }
+];
+
+const calculateLocationRisk = (data) => {
+  const current = data.current || {};
+  const cloudCover = current.cloudCover ?? 0;
+  const temp = current.temperature ?? 25;
+  const wind = current.windSpeed ?? 0;
+  
+  let riskRate = 0;
+  let reason = 'Optimal conditions';
+  
+  let solarRisk = cloudCover * 1.1;
+  let tempRisk = temp > 35 ? (temp - 35) * 8 : (temp < 5 ? (5 - temp) * 8 : 0);
+  let windRisk = (wind / 50) * 100;
+  
+  if (solarRisk > riskRate) { riskRate = solarRisk; reason = `High Cloud Cover (${cloudCover}%)`; }
+  if (tempRisk > riskRate) { riskRate = tempRisk; reason = `Extreme Temp (${temp}°C)`; }
+  if (windRisk > riskRate) { riskRate = windRisk; reason = `High Wind (${wind}km/h)`; }
+  
+  riskRate = Math.min(100, Math.max(0, riskRate));
+  
+  let level = 'Low';
+  let color = '#38ef7d'; // Green
+  
+  if (riskRate >= 80) { level = 'Critical'; color = '#ef4444'; }
+  else if (riskRate >= 60) { level = 'High'; color = '#f97316'; }
+  else if (riskRate >= 30) { level = 'Moderate'; color = '#eab308'; }
+  
+  return { riskRate: Math.round(riskRate), level, color, reason, current };
+};
 
 export default function GlobalSolarMap() {
-  const topRegions = [
-    { rank: 1, name: 'Australia', val: '94%' },
-    { rank: 2, name: 'Middle East', val: '92%' },
-    { rank: 3, name: 'India', val: '88%' },
-    { rank: 4, name: 'Spain', val: '85%' },
-    { rank: 5, name: 'USA', val: '78%' },
-  ]
+  const [pointsData, setPointsData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    
+    const loadMapData = async () => {
+      try {
+        const promises = LOCATIONS.map(async (loc) => {
+          try {
+            const data = await fetchSolarData(loc.lat, loc.lon);
+            const riskInfo = calculateLocationRisk(data);
+            return { ...loc, ...riskInfo };
+          } catch (err) {
+            // Fallback if one location fails
+            return { ...loc, riskRate: 0, level: 'Low', color: '#38ef7d', reason: 'Data unavailable', current: {} };
+          }
+        });
+        
+        const results = await Promise.all(promises);
+        if (isMounted) {
+          setPointsData(results);
+          setLoading(false);
+        }
+      } catch (e) {
+        if (isMounted) setLoading(false);
+      }
+    };
+    
+    loadMapData();
+    const interval = setInterval(loadMapData, 5 * 60 * 1000);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, []);
 
   return (
     <div className="glass-card global-map-card">
@@ -16,141 +89,97 @@ export default function GlobalSolarMap() {
           <span className="icon-glow">🌐</span>
           <h4>Global Solar Intelligence</h4>
         </div>
+        {loading && <span style={{ color: '#94a3b8', fontSize: '0.75rem' }}>Updating data...</span>}
       </div>
 
-      <div className="global-map-body">
-        <div className="svg-map-wrapper">
-          <svg viewBox="0 0 1000 500" className="world-svg-map">
-            <defs>
-              <radialGradient id="heat-aus" cx="80%" cy="75%" r="18%">
-                <stop offset="0%" stopColor="#ff4b4b" stopOpacity="0.8" />
-                <stop offset="50%" stopColor="#ffb830" stopOpacity="0.5" />
-                <stop offset="100%" stopColor="#000000" stopOpacity="0" />
-              </radialGradient>
-              <radialGradient id="heat-me" cx="58%" cy="45%" r="15%">
-                <stop offset="0%" stopColor="#ff3b3b" stopOpacity="0.85" />
-                <stop offset="50%" stopColor="#ffb830" stopOpacity="0.6" />
-                <stop offset="100%" stopColor="#000000" stopOpacity="0" />
-              </radialGradient>
-              <radialGradient id="heat-ind" cx="68%" cy="50%" r="14%">
-                <stop offset="0%" stopColor="#00f2fe" stopOpacity="0.85" />
-                <stop offset="50%" stopColor="#4facfe" stopOpacity="0.5" />
-                <stop offset="100%" stopColor="#000000" stopOpacity="0" />
-              </radialGradient>
-              <radialGradient id="heat-esp" cx="47%" cy="38%" r="12%">
-                <stop offset="0%" stopColor="#ffb830" stopOpacity="0.8" />
-                <stop offset="60%" stopColor="#00f2fe" stopOpacity="0.4" />
-                <stop offset="100%" stopColor="#000000" stopOpacity="0" />
-              </radialGradient>
-              <radialGradient id="heat-usa" cx="24%" cy="36%" r="18%">
-                <stop offset="0%" stopColor="#38ef7d" stopOpacity="0.75" />
-                <stop offset="60%" stopColor="#11998e" stopOpacity="0.35" />
-                <stop offset="100%" stopColor="#000000" stopOpacity="0" />
-              </radialGradient>
-              <linearGradient id="map-grid-grad" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor="#0f2b48" stopOpacity="0.4" />
-                <stop offset="100%" stopColor="#051224" stopOpacity="0.9" />
-              </linearGradient>
-            </defs>
+      <div className="global-map-body" style={{ position: 'relative' }}>
+        <div className="svg-map-wrapper" style={{ height: '300px', borderRadius: '12px', overflow: 'hidden' }}>
+          <MapContainer 
+            center={[20, 0]} 
+            zoom={1.5} 
+            minZoom={1}
+            maxZoom={10}
+            style={{ height: '100%', width: '100%', backgroundColor: '#060913' }}
+            zoomControl={true}
+            attributionControl={false}
+          >
+            <TileLayer
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+              attribution="Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
+            />
+            {pointsData.map((pt, idx) => (
+              <CircleMarker 
+                key={idx}
+                center={[pt.lat, pt.lon]}
+                radius={8}
+                pathOptions={{
+                  color: pt.color,
+                  fillColor: pt.color,
+                  fillOpacity: 0.7,
+                  weight: 2
+                }}
+              >
+                <Popup className="custom-popup">
+                  <div style={{ color: '#0f172a', minWidth: '150px' }}>
+                    <h4 style={{ margin: '0 0 5px 0', fontSize: '1rem', fontWeight: 'bold' }}>{pt.name}</h4>
+                    <div style={{ fontSize: '0.75rem', color: '#475569', marginBottom: '8px' }}>
+                      Lat: {pt.lat.toFixed(4)}, Lon: {pt.lon.toFixed(4)}
+                    </div>
+                    <div style={{ fontSize: '0.8rem', marginBottom: '8px' }}>
+                      <span style={{ 
+                        backgroundColor: pt.color, 
+                        color: pt.level === 'Moderate' || pt.level === 'Low' ? '#000' : '#fff',
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        fontWeight: 'bold',
+                        display: 'inline-block'
+                      }}>
+                        {pt.level} Risk ({pt.riskRate}%)
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '0.8rem', margin: '4px 0' }}><strong>Temp:</strong> {pt.current.temperature ?? '--'}°C</div>
+                    <div style={{ fontSize: '0.8rem', margin: '4px 0' }}><strong>Wind:</strong> {pt.current.windSpeed ?? '--'} km/h</div>
+                    <div style={{ fontSize: '0.8rem', margin: '4px 0' }}><strong>Cloud:</strong> {pt.current.cloudCover ?? '--'}%</div>
+                    <hr style={{ margin: '8px 0', borderColor: '#cbd5e1' }} />
+                    <div style={{ fontSize: '0.75rem', color: '#475569' }}><em>{pt.reason}</em></div>
+                  </div>
+                </Popup>
+              </CircleMarker>
+            ))}
+          </MapContainer>
+        </div>
 
-            {/* Grid background lines */}
-            <rect width="1000" height="500" fill="url(#map-grid-grad)" rx="12" />
-            <line x1="0" y1="125" x2="1000" y2="125" stroke="rgba(255,255,255,0.04)" strokeDasharray="4 4" />
-            <line x1="0" y1="250" x2="1000" y2="250" stroke="rgba(255,255,255,0.06)" />
-            <line x1="0" y1="375" x2="1000" y2="375" stroke="rgba(255,255,255,0.04)" strokeDasharray="4 4" />
-            <line x1="250" y1="0" x2="250" y2="500" stroke="rgba(255,255,255,0.04)" strokeDasharray="4 4" />
-            <line x1="500" y1="0" x2="500" y2="500" stroke="rgba(255,255,255,0.06)" />
-            <line x1="750" y1="0" x2="750" y2="500" stroke="rgba(255,255,255,0.04)" strokeDasharray="4 4" />
-
-            {/* Simplified World Continents Base Vector */}
-            <g fill="#162e4a" stroke="#1d426a" strokeWidth="1">
-              {/* North America */}
-              <path d="M 120 100 Q 200 80 300 110 T 320 220 Q 240 280 180 260 T 100 180 Z" />
-              {/* South America */}
-              <path d="M 270 270 Q 340 280 350 360 T 290 460 Q 250 400 250 330 Z" />
-              {/* Europe */}
-              <path d="M 440 100 Q 520 90 560 140 T 480 200 Q 430 180 430 130 Z" />
-              {/* Africa */}
-              <path d="M 450 200 Q 560 190 580 290 T 520 420 Q 440 380 440 280 Z" />
-              {/* Asia */}
-              <path d="M 560 90 Q 750 70 880 140 T 820 280 Q 660 300 580 200 Z" />
-              {/* Australia */}
-              <path d="M 750 320 Q 860 310 880 400 T 780 430 Q 720 400 740 340 Z" />
-            </g>
-
-            {/* Solar Heatmap Overlays */}
-            <rect width="1000" height="500" fill="url(#heat-aus)" />
-            <rect width="1000" height="500" fill="url(#heat-me)" />
-            <rect width="1000" height="500" fill="url(#heat-ind)" />
-            <rect width="1000" height="500" fill="url(#heat-esp)" />
-            <rect width="1000" height="500" fill="url(#heat-usa)" />
-
-            {/* Hotspot Markers */}
-            <g className="map-hotspots">
-              {/* Australia */}
-              <circle cx="810" cy="370" r="6" fill="#ff4b4b" />
-              <circle cx="810" cy="370" r="14" fill="none" stroke="#ff4b4b" strokeWidth="1.5" opacity="0.7">
-                <animate attributeName="r" values="6;18;6" dur="3s" repeatCount="indefinite" />
-                <animate attributeName="opacity" values="0.8;0;0.8" dur="3s" repeatCount="indefinite" />
-              </circle>
-
-              {/* Middle East */}
-              <circle cx="580" cy="220" r="6" fill="#ff9100" />
-              <circle cx="580" cy="220" r="14" fill="none" stroke="#ff9100" strokeWidth="1.5" opacity="0.7">
-                <animate attributeName="r" values="6;18;6" dur="2.5s" repeatCount="indefinite" />
-              </circle>
-
-              {/* India */}
-              <circle cx="680" cy="240" r="6" fill="#00f2fe" />
-              <circle cx="680" cy="240" r="14" fill="none" stroke="#00f2fe" strokeWidth="1.5" opacity="0.7">
-                <animate attributeName="r" values="6;18;6" dur="2.8s" repeatCount="indefinite" />
-              </circle>
-
-              {/* Spain */}
-              <circle cx="470" cy="180" r="5" fill="#ffb830" />
-
-              {/* USA */}
-              <circle cx="240" cy="180" r="5" fill="#38ef7d" />
-            </g>
-          </svg>
-
-          {/* Floating Global Solar Potential Overlay Card */}
-          <div className="map-overlay-card potential-card">
-            <span className="sub-title">Global Solar Potential</span>
-            <div className="big-stat">
-              82% <span className="stat-label">World average</span>
-            </div>
-            <div className="mini-progress-bar">
-              <div className="bar-fill" style={{ width: '82%' }} />
-            </div>
+        {/* Legend Overlay */}
+        <div style={{
+          position: 'absolute',
+          bottom: '10px',
+          left: '10px',
+          background: 'rgba(10, 20, 36, 0.85)',
+          padding: '8px 12px',
+          borderRadius: '8px',
+          border: '1px solid rgba(255,255,255,0.1)',
+          backdropFilter: 'blur(8px)',
+          zIndex: 1000,
+          display: 'flex',
+          gap: '12px',
+          fontSize: '0.75rem',
+          color: '#e2e8f0'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#38ef7d' }}></span> Low
           </div>
-
-          {/* Floating Top Regions Ranking Card */}
-          <div className="map-overlay-card regions-card">
-            <h5>Top Regions</h5>
-            <ol className="regions-list">
-              {topRegions.map((r) => (
-                <li key={r.name}>
-                  <span className="rank">{r.rank}.</span>
-                  <span className="region-name">{r.name}</span>
-                  <span className="region-val">{r.val}</span>
-                </li>
-              ))}
-            </ol>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#eab308' }}></span> Moderate
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#f97316' }}></span> High
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#ef4444' }}></span> Critical
           </div>
         </div>
 
-        {/* Heatmap Color Scale Bar */}
-        <div className="map-legend-bar">
-          <div className="legend-items">
-            <span className="legend-chip high"><i /> High</span>
-            <span className="legend-chip mod"><i /> Moderate</span>
-            <span className="legend-chip low"><i /> Low</span>
-            <span className="legend-chip cloud"><i /> Cloud Cover</span>
-            <span className="legend-chip storm"><i /> Storm Risk</span>
-          </div>
-        </div>
       </div>
     </div>
-  )
+  );
 }
